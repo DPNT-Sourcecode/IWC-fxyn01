@@ -182,4 +182,3 @@ def test_queue_does_not_track_duplicates_after_purge() -> None:
         # If others were preserved, the earlier id_verification would be preserved and age would be 240
         call_age().expect(360)
     ])
-
