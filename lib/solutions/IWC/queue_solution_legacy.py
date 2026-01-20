@@ -50,7 +50,9 @@ REGISTERED_PROVIDERS: list[Provider] = [
 class Queue:
     def __init__(self):
         self._queue = []
-        self._queue_users_to_providers: dict[int, str] = {}
+
+        # Tracks mapping of users to providers
+        self._queue_users_to_providers: dict[int, list[str]] = {}
 
     def _collect_dependencies(self, task: TaskSubmission) -> list[TaskSubmission]:
         provider = next((p for p in REGISTERED_PROVIDERS if p.name == task.provider), None)
@@ -95,10 +97,16 @@ class Queue:
         tasks = [*self._collect_dependencies(item), item]
 
         duplicate_provider = None
+        curr_index = -1
         try:
             existing_user_providers = self._queue_users_to_providers[item.user_id]
             if item.provider in existing_user_providers:
                 duplicate_provider = item.provider
+                for index, task in enumerate(self._queue):
+                    if task.provider == item.provider:
+                        curr_index = index
+
+
         except ValueError:
             pass
 
@@ -106,7 +114,12 @@ class Queue:
             metadata = task.metadata
             metadata.setdefault("priority", Priority.NORMAL)
             metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
-            self._queue.append(task)
+            if duplicate_provider is None:
+                self._queue.append(task)
+                self._queue_users_to_providers[item.user_id].append(item.provider)
+            else:
+                self._queue[curr_index].timestamp = min(self._queue[curr_index].timestamp, item.timestamp)
+
         return self.size
 
     def dequeue(self):
@@ -251,3 +264,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
