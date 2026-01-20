@@ -124,6 +124,14 @@ def test_multiple_bank_statements_timestamp_prioritised_correctly() -> None:
         call_dequeue().expect("bank_statements", 1)
     ])
 
+def test_bank_statements_last_even_with_earlier_timestamp() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=1)).expect(1),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(2),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("bank_statements", 1)
+    ])
+
 def test_bank_statements_not_affected_by_duplicates() -> None:
     run_queue([
         call_enqueue("companies_house", 1, iso_ts(delta_minutes=1)).expect(1),
