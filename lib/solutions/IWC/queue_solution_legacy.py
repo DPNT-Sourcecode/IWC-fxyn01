@@ -196,6 +196,9 @@ class Queue:
         self._queue.clear()
         return True
 
+    def contents(self):
+        return self._queue
+
 """
 ===================================================================================================
 
@@ -279,6 +282,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 

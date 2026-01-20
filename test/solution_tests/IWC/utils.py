@@ -43,7 +43,6 @@ def call_size() -> QueueActionBuilder:
 def call_purge() -> QueueActionBuilder:
     return QueueActionBuilder("purge")
 
-
 def call_dequeue() -> QueueActionBuilder:
     return QueueActionBuilder(
         "dequeue",
@@ -75,5 +74,6 @@ def run_queue(actions: Iterable[dict[str, Any]]) -> None:
 
 
 __all__ = ["iso_ts", "call_enqueue", "call_size", "call_dequeue", "run_queue"]
+
 
 
