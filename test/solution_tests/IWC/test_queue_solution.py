@@ -169,3 +169,13 @@ def test_age_more_than_two_items() -> None:
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(3),
         call_age().expect(360)
     ])
+
+def test_queue_does_not_track_duplicates_after_purge() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_purge(),
+        call_size()
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+
+        call_age().expect(360)
+    ])

@@ -245,6 +245,7 @@ class Queue:
 
     def purge(self):
         self._queue.clear()
+        self._queue_users_to_providers.clear()
         return True
 
     def contents(self):
@@ -333,5 +334,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
