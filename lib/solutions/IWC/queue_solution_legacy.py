@@ -122,7 +122,13 @@ class Queue:
             metadata.setdefault("priority", Priority.NORMAL)
             metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
             if not duplicate_provider:
+                # Always ensure the bank statements task is at the end
+                bank_statements_task  = None
+                if self._queue[-1].provider == BANK_STATEMENTS_PROVIDER.name:
+                    bank_statements_task = self._queue.pop(-1)
                 self._queue.append(task)
+                if bank_statements_task:
+                    self._queue.append(bank_statements_task)
                 try:
                     self._queue_users_to_providers[item.user_id].append(item.provider)
                 except KeyError:
@@ -290,5 +296,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
