@@ -99,6 +99,3 @@ def test_deduplication_dependency_resolution_timestamp_applies_when_dependency_i
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("credit_check", 1)
     ])
-
-
-
