@@ -106,8 +106,7 @@ class Queue:
                     if task.provider == item.provider:
                         curr_index = index
 
-
-        except ValueError:
+        except KeyError:
             pass
 
         for task in tasks:
@@ -164,9 +163,22 @@ class Queue:
         )
 
         task = self._queue.pop(0)
+
+        # Update queue to remove provider from item
+        user_id = task.user_id
+        provider = task.provider
+        curr_providers = self._queue_users_to_providers[user_id]
+        for index, curr_provider in enumerate(curr_providers):
+            # Remove item from the queue to indicate it is no longer part of it
+            # There can only be one item due to deduplication rules
+            if provider == curr_provider:
+                curr_providers.pop(index)
+                break
+
+
         return TaskDispatch(
-            provider=task.provider,
-            user_id=task.user_id,
+            provider=provider,
+            user_id=user_id,
         )
 
     @property
@@ -264,4 +276,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
