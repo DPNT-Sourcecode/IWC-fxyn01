@@ -123,4 +123,3 @@ def test_multiple_bank_statements_timestamp_prioritised_correctly() -> None:
         call_dequeue().expect("bank_statements", 2),
         call_dequeue().expect("bank_statements", 1)
     ])
-
