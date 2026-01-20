@@ -124,8 +124,10 @@ class Queue:
             if not duplicate_provider:
                 # Always ensure the bank statements task is at the end
                 bank_statements_task  = None
-                if self._queue[-1].provider == BANK_STATEMENTS_PROVIDER.name:
+                if (self.size > 0 and self._queue[-1].provider == BANK_STATEMENTS_PROVIDER.name
+                        and (task.provider != BANK_STATEMENTS_PROVIDER.name or task.timestamp < self._queue[-1].timestamp)):
                     bank_statements_task = self._queue.pop(-1)
+
                 self._queue.append(task)
                 if bank_statements_task:
                     self._queue.append(bank_statements_task)
@@ -296,6 +298,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
