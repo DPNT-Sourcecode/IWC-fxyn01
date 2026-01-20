@@ -38,9 +38,9 @@ def test_timestamp_ordering_applies() -> None:
         call_dequeue().expect("companies_house", 2)
     ])
 
-def dependency_resolution_applies() -> None:
+def test_dependency_resolution_applies() -> None:
     run_queue([
-        call_enqueue("credit_check", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("credit_check", 1, iso_ts(delta_minutes=0)).expect(2),
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("credit_check", 1)
     ])
