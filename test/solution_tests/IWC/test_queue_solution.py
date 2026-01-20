@@ -25,8 +25,8 @@ def test_rule_of_three_applies() -> None:
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(3),
         call_enqueue("id_verification", 1, iso_ts(delta_minutes=0)).expect(4),
         call_dequeue().expect("companies_house", 1),
-        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("id_verification", 1),
+        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("companies_house", 2)
     ])
 
@@ -62,8 +62,8 @@ def test_deduplication_rule_of_three_applies() -> None:
         call_enqueue("id_verification", 1, iso_ts(delta_minutes=0)).expect(4),
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(4),
         call_dequeue().expect("companies_house", 1),
-        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("id_verification", 1),
+        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("companies_house", 2)
     ])
 
@@ -99,3 +99,4 @@ def test_deduplication_dependency_resolution_timestamp_applies_when_dependency_i
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("credit_check", 1)
     ])
+
