@@ -172,10 +172,14 @@ def test_age_more_than_two_items() -> None:
 
 def test_queue_does_not_track_duplicates_after_purge() -> None:
     run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=5)).expect(1),
+        call_enqueue("id_verification", 1, iso_ts(delta_minutes=4)).expect(2),
+        call_age().expect(60),
+        call_purge().expect(True),
+        call_size().expect(0),
         call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
-        call_purge(),
-        call_size()
-        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
-
+        call_enqueue("id_verification", 1, iso_ts(delta_minutes=6)).expect(2),
+        # If others were preserved, the earlier id_verification would be preserved and age would be 240
         call_age().expect(360)
     ])
+

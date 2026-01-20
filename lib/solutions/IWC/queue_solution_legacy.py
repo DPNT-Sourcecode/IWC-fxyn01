@@ -241,7 +241,7 @@ class Queue:
 
     @staticmethod
     def __calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
-        return (abs(first_timestamp - second_timestamp)).total_seconds()
+        return int((abs(first_timestamp - second_timestamp)).total_seconds())
 
     def purge(self):
         self._queue.clear()
@@ -334,6 +334,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
