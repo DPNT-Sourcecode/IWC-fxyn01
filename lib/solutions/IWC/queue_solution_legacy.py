@@ -61,7 +61,7 @@ class Queue:
 
         tasks: list[TaskSubmission] = []
         for dependency in provider.depends_on:
-            duplicate_provider, curr_index = self.get_provider_and_index(provider.name, task.user_id)
+            duplicate_provider, curr_index = self.get_provider_and_index(dependency, task.user_id)
 
             if not duplicate_provider:
                 dependency_task = TaskSubmission(
@@ -121,7 +121,7 @@ class Queue:
             metadata = task.metadata
             metadata.setdefault("priority", Priority.NORMAL)
             metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
-            if duplicate_provider is None:
+            if not duplicate_provider:
                 self._queue.append(task)
                 try:
                     self._queue_users_to_providers[item.user_id].append(item.provider)
@@ -290,4 +290,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
