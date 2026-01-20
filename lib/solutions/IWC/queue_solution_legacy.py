@@ -61,13 +61,19 @@ class Queue:
 
         tasks: list[TaskSubmission] = []
         for dependency in provider.depends_on:
-            dependency_task = TaskSubmission(
-                provider=dependency,
-                user_id=task.user_id,
-                timestamp=task.timestamp,
-            )
-            tasks.extend(self._collect_dependencies(dependency_task))
-            tasks.append(dependency_task)
+            duplicate_provider, curr_index = self.get_provider_and_index(provider.name, task.user_id)
+
+            if not duplicate_provider:
+                dependency_task = TaskSubmission(
+                    provider=dependency,
+                    user_id=task.user_id,
+                    timestamp=task.timestamp,
+                )
+                tasks.extend(self._collect_dependencies(dependency_task))
+                tasks.append(dependency_task)
+            else:
+                self._queue[curr_index].timestamp = min(self._queue[curr_index].timestamp, task.timestamp)
+
         return tasks
 
     @staticmethod
@@ -93,21 +99,23 @@ class Queue:
             return datetime.fromisoformat(timestamp).replace(tzinfo=None)
         return timestamp
 
+    def get_provider_and_index(self, provider: str, user_id: int) -> tuple[str, int]:
+        try:
+            existing_user_providers = self._queue_users_to_providers[user_id]
+            if provider in existing_user_providers:
+                duplicate_provider = provider
+                for index, task in enumerate(self._queue):
+                    if task.provider == provider:
+                        curr_index = index
+                        return duplicate_provider, curr_index
+        except KeyError:
+            pass
+        return "", -1
+
     def enqueue(self, item: TaskSubmission) -> int:
         tasks = [*self._collect_dependencies(item), item]
 
-        duplicate_provider = None
-        curr_index = -1
-        try:
-            existing_user_providers = self._queue_users_to_providers[item.user_id]
-            if item.provider in existing_user_providers:
-                duplicate_provider = item.provider
-                for index, task in enumerate(self._queue):
-                    if task.provider == item.provider:
-                        curr_index = index
-
-        except KeyError:
-            pass
+        duplicate_provider, curr_index = self.get_provider_and_index(item.provider, item.user_id)
 
         for task in tasks:
             metadata = task.metadata
@@ -282,3 +290,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
