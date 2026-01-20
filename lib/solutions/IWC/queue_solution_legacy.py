@@ -99,6 +99,12 @@ class Queue:
             return datetime.fromisoformat(timestamp).replace(tzinfo=None)
         return timestamp
 
+    # Give a higher number so other values are sorted earlier
+    @staticmethod
+    def _deprioritise_bank_statements(task: TaskSubmission):
+        if task.provider == BANK_STATEMENTS_PROVIDER.name:
+            return 1
+        return 0
 
     def get_provider_and_index(self, provider: str, user_id: int) -> tuple[str, int]:
         try:
@@ -183,6 +189,7 @@ class Queue:
                 self._priority_for_task(i),
                 self._earliest_group_timestamp_for_task(i),
                 self._timestamp_for_task(i),
+                self._deprioritise_bank_statements(i),
             )
         )
 
@@ -303,3 +310,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
