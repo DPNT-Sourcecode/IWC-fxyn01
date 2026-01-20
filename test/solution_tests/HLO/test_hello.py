@@ -1,8 +1,7 @@
-import unittest
+from lib.solutions.HLO.hello_solution import HelloSolution
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)  # add assertion here
 
-if __name__ == '__main__':
-    unittest.main()
+class TestHello():
+
+    def test_hello(self):
+        assert HelloSolution().hello("anything") == "hello world"
