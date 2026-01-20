@@ -53,12 +53,35 @@ def test_deduplication_rules_apply() -> None:
         call_size().expect(0)
     ])
 
-def test_deduplication_applies_timestamp_logic() -> None:
+def test_deduplication_rule_of_three_applies() -> None:
     run_queue([
-        call_enqueue("companies_house", 1, iso_ts(delta_minutes=5)).expect(1),
-        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("companies_house", 2, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(2),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(3),
+        call_enqueue("id_verification", 1, iso_ts(delta_minutes=0)).expect(4),
+        call_enqueue("id_verification", 1, iso_ts(delta_minutes=0)).expect(4),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(4),
         call_dequeue().expect("companies_house", 1),
-        call_size().expect(0)
+        call_dequeue().expect("bank_statements", 1),
+        call_dequeue().expect("id_verification", 1),
+        call_dequeue().expect("companies_house", 2)
     ])
+
+def test_deduplication_timestamp_ordering_applies() -> None:
+    run_queue([
+        call_enqueue("companies_house", 2, iso_ts(delta_minutes=5)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(2),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=10)).expect(2),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("companies_house", 2)
+    ])
+
+def test_deduplication_dependency_resolution_applies() -> None:
+    run_queue([
+        call_enqueue("credit_check", 1, iso_ts(delta_minutes=0)).expect(2),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("credit_check", 1)
+    ])
+
 
 
