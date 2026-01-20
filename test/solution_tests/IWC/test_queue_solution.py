@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .utils import call_dequeue, call_enqueue, call_size, iso_ts, run_queue, call_purge
+from .utils import call_dequeue, call_enqueue, call_size, iso_ts, run_queue, call_purge, call_age
 
 
 def test_enqueue_size_dequeue_flow() -> None:
@@ -142,4 +142,11 @@ def test_bank_statements_not_affected_by_duplicates() -> None:
         call_dequeue().expect("id_verification", 2),
         call_dequeue().expect("bank_statements", 1),
         call_size().expect(0)
+    ])
+
+def test_age() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(2),
+        call_age().expect(300)
     ])
