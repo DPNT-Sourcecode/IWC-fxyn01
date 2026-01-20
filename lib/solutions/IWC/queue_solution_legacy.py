@@ -10,7 +10,6 @@ class Priority(IntEnum):
     """Represents the queue ordering tiers observed in the legacy system."""
     HIGH = 1
     NORMAL = 2
-    LOW = 3
 
 @dataclass
 class Provider:
@@ -291,4 +290,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
