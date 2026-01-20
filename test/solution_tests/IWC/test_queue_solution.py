@@ -100,3 +100,27 @@ def test_deduplication_dependency_resolution_timestamp_applies_when_dependency_i
         call_dequeue().expect("credit_check", 1)
     ])
 
+def test_multiple_bank_statements_rule_of_three_prioritised_correctly() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(2),
+        call_enqueue("bank_statements", 2, iso_ts(delta_minutes=0)).expect(3),
+        call_enqueue("credit_check", 1, iso_ts(delta_minutes=5)).expect(4),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("credit_check", 1),
+        call_dequeue().expect("bank_statements", 1),
+        call_dequeue().expect("bank_statements", 2)
+    ])
+
+def test_multiple_bank_statements_timestamp_prioritised_correctly() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(2),
+        call_enqueue("bank_statements", 2, iso_ts(delta_minutes=0)).expect(3),
+        call_enqueue("credit_check", 2, iso_ts(delta_minutes=0)).expect(4),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("credit_check", 1),
+        call_dequeue().expect("bank_statements", 2),
+        call_dequeue().expect("bank_statements", 1)
+    ])
+
