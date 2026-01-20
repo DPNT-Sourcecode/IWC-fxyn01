@@ -226,7 +226,7 @@ class Queue:
             return 0
 
         if self.size == 2:
-            return abs(datetime.fromisoformat(self._queue[0].timestamp) - datetime.fromisoformat(self._queue[1].timestamp)).total_seconds()
+            return self.__calculate_difference_seconds(datetime.fromisoformat(self._queue[0].timestamp), datetime.fromisoformat(self._queue[1].timestamp))
 
         newest_timestamp = datetime.fromisoformat(self._queue[0].timestamp)
         oldest_timestamp = newest_timestamp
@@ -237,11 +237,11 @@ class Queue:
             elif curr_timestamp > oldest_timestamp:
                 oldest_timestamp = curr_timestamp
 
-        return (newest_timestamp - oldest_timestamp).total_seconds()
+        return self.__calculate_difference_seconds(newest_timestamp, oldest_timestamp)
 
-
-
-        return 0
+    @staticmethod
+    def __calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
+        return (abs(first_timestamp - second_timestamp)).total_seconds()
 
     def purge(self):
         self._queue.clear()
@@ -333,4 +333,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
