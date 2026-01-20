@@ -221,6 +221,13 @@ class Queue:
         if self.size == 0:
             return 0
 
+        # No time gap, so return 0
+        if self.size == 1:
+            return 0
+
+        if self.size == 2:
+            return abs(datetime.fromisoformat(self._queue[0].timestamp) - datetime.fromisoformat(self._queue[1].timestamp)).total_seconds()
+
         newest_timestamp = datetime.fromisoformat(self._queue[0].timestamp)
         oldest_timestamp = newest_timestamp
         for i in range(1, self.size - 1):
@@ -230,7 +237,7 @@ class Queue:
             elif curr_timestamp > oldest_timestamp:
                 oldest_timestamp = curr_timestamp
 
-        return (datetime.fromisoformat(newest_timestamp) - datetime.fromisoformat(oldest_timestamp)) * 60
+        return (newest_timestamp - oldest_timestamp).total_seconds()
 
 
 
@@ -326,3 +333,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
