@@ -144,9 +144,28 @@ def test_bank_statements_not_affected_by_duplicates() -> None:
         call_size().expect(0)
     ])
 
-def test_age() -> None:
+def test_age_no_items_in_queue() -> None:
+    run_queue([
+        call_age().expect(0)
+    ])
+
+def test_age_one_items_in_queue() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_age().expect(0)
+    ])
+
+def test_age_two_items() -> None:
     run_queue([
         call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(2),
         call_age().expect(300)
+    ])
+
+def test_age_more_than_two_items() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("id_verification", 1, iso_ts(delta_minutes=6)).expect(2),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=5)).expect(3),
+        call_age().expect(360)
     ])

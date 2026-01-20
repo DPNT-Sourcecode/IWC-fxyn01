@@ -231,7 +231,7 @@ class Queue:
         newest_timestamp = datetime.fromisoformat(self._queue[0].timestamp)
         oldest_timestamp = newest_timestamp
         for i in range(1, self.size - 1):
-            curr_timestamp = datetime.fromisoformat(self._queue[i])
+            curr_timestamp = datetime.fromisoformat(self._queue[i].timestamp)
             if curr_timestamp < newest_timestamp:
                 newest_timestamp = curr_timestamp
             elif curr_timestamp > oldest_timestamp:
