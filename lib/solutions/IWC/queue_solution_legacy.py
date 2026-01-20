@@ -99,6 +99,7 @@ class Queue:
             return datetime.fromisoformat(timestamp).replace(tzinfo=None)
         return timestamp
 
+
     def get_provider_and_index(self, provider: str, user_id: int) -> tuple[str, int]:
         try:
             existing_user_providers = self._queue_users_to_providers[user_id]
@@ -122,15 +123,19 @@ class Queue:
             metadata.setdefault("priority", Priority.NORMAL)
             metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
             if not duplicate_provider:
-                # Always ensure the bank statements task is at the end
-                bank_statements_task  = None
-                if (self.size > 0 and self._queue[-1].provider == BANK_STATEMENTS_PROVIDER.name
+                # Always ensure the bank statements tasks are at the end
+                bank_statements_tasks  = []
+                curr_pos = self.size - 1
+
+                while (self.size > 0 and self._queue[curr_pos].provider == BANK_STATEMENTS_PROVIDER.name
                         and (task.provider != BANK_STATEMENTS_PROVIDER.name or task.timestamp < self._queue[-1].timestamp)):
-                    bank_statements_task = self._queue.pop(-1)
+                    bank_statements_tasks.append(self._queue.pop(curr_pos))
+                    curr_pos -= 1
 
                 self._queue.append(task)
-                if bank_statements_task:
-                    self._queue.append(bank_statements_task)
+                if len(bank_statements_tasks) > 0:
+                    for bank_task in bank_statements_tasks:
+                        self._queue.append(bank_task)
                 try:
                     self._queue_users_to_providers[item.user_id].append(item.provider)
                 except KeyError:
