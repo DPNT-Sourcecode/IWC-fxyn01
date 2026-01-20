@@ -47,8 +47,8 @@ def call_purge() -> QueueActionBuilder:
 def call_dequeue() -> QueueActionBuilder:
     return QueueActionBuilder(
         "dequeue",
-        expect_factory=lambda provider, user_id: TaskDispatch(
-            provider=provider, user_id=user_id
+        expect_factory=lambda provider, user_id, timestamp: TaskDispatch(
+            provider=provider, user_id=user_id, timestamp=timestamp
         ),
     )
 
@@ -75,3 +75,4 @@ def run_queue(actions: Iterable[dict[str, Any]]) -> None:
 
 
 __all__ = ["iso_ts", "call_enqueue", "call_size", "call_dequeue", "run_queue"]
+
