@@ -44,3 +44,17 @@ def test_dependency_resolution_applies() -> None:
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("credit_check", 1)
     ])
+
+def test_deduplication_rules_apply() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_dequeue().expect("companies_house", 1),
+    ])
+
+def test_deduplication_applies_timestamp_logic() -> None:
+    run_queue([
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=5)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_dequeue().expect("companies_house", 1, iso_ts(delta_minutes=0)),
+    ])

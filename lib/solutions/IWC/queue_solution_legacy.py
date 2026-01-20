@@ -115,7 +115,10 @@ class Queue:
             metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
             if duplicate_provider is None:
                 self._queue.append(task)
-                self._queue_users_to_providers[item.user_id].append(item.provider)
+                try:
+                    self._queue_users_to_providers[item.user_id].append(item.provider)
+                except KeyError:
+                    self._queue_users_to_providers[item.user_id] = [item.provider]
             else:
                 self._queue[curr_index].timestamp = min(self._queue[curr_index].timestamp, item.timestamp)
 
@@ -276,5 +279,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
