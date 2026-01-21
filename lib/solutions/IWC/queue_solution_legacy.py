@@ -194,28 +194,28 @@ class Queue:
         )
 
         # Brute force pairwise comparison, then will test adding sorting criteria
-        for i in range(len(self._queue)):
-            curr_task_i: TaskSubmission = self._queue[i]
-            for j in range(len(self._queue)):
-                # Do not swap same item or previous items back
-                if i >= j:
-                    continue
-                curr_task_j: TaskSubmission = self._queue[j]
-                if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
-                    and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
-                    continue
+        # for i in range(len(self._queue)):
+        #     curr_task_i: TaskSubmission = self._queue[i]
+        #     for j in range(len(self._queue)):
+        #         # Do not swap same item or previous items back
+        #         if i >= j:
+        #             continue
+        #         curr_task_j: TaskSubmission = self._queue[j]
+        #         if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
+        #             and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
+        #             continue
+        #
+        #         age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_j.timestamp), datetime.fromisoformat(curr_task_i.timestamp))
+        #
+        #         # Check > 5 mins (300 seconds)
+        #         if age >= 300:
+        #             if curr_task_j.provider == BANK_STATEMENTS_PROVIDER.name:
+        #                 # Swap i and j where j should be moved forward
+        #                 temp = curr_task_i
+        #                 self._queue[i] = self._queue[j]
+        #                 self._queue[j] = temp
 
-                age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_j.timestamp), datetime.fromisoformat(curr_task_i.timestamp))
-
-                # Check > 5 mins (300 seconds)
-                if age >= 300:
-                    if curr_task_j.provider == BANK_STATEMENTS_PROVIDER.name:
-                        # Swap i and j where j should be moved forward
-                        temp = curr_task_i
-                        self._queue[i] = self._queue[j]
-                        self._queue[j] = temp
-
-
+        self._queue.sort(key=)
 
 
 
@@ -364,6 +364,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
