@@ -206,8 +206,9 @@ class Queue:
                     continue
 
                 age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp), datetime.fromisoformat(curr_task_j.timestamp))
-
-                if age > 5:
+                
+                # Check > 5 mins (300 seconds)
+                if age > 300:
                     if curr_task_j.provider == BANK_STATEMENTS_PROVIDER.name:
                         # Swap i and j where j should be moved forward
                         temp = curr_task_i
@@ -355,4 +356,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
