@@ -205,7 +205,7 @@ class Queue:
                     and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
                     continue
 
-                age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp), datetime.fromisoformat(curr_task_j.timestamp))
+                age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_j.timestamp), datetime.fromisoformat(curr_task_i.timestamp))
 
                 # Check > 5 mins (300 seconds)
                 if age >= 300:
@@ -248,7 +248,7 @@ class Queue:
             return 0
 
         if self.size == 2:
-            return self.__calculate_difference_seconds(datetime.fromisoformat(self._queue[0].timestamp), datetime.fromisoformat(self._queue[1].timestamp))
+            return self.__calculate_difference_seconds_abs(datetime.fromisoformat(self._queue[0].timestamp), datetime.fromisoformat(self._queue[1].timestamp))
 
         newest_timestamp = datetime.fromisoformat(self._queue[0].timestamp)
         oldest_timestamp = newest_timestamp
@@ -259,10 +259,14 @@ class Queue:
             elif curr_timestamp > oldest_timestamp:
                 oldest_timestamp = curr_timestamp
 
-        return self.__calculate_difference_seconds(newest_timestamp, oldest_timestamp)
+        return self.__calculate_difference_seconds_abs(newest_timestamp, oldest_timestamp)
 
     @staticmethod
     def __calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
+        return int((first_timestamp - second_timestamp).total_seconds())
+
+    @staticmethod
+    def __calculate_difference_seconds_abs(first_timestamp, second_timestamp) -> int:
         return int((abs(first_timestamp - second_timestamp)).total_seconds())
 
     def purge(self):
@@ -356,6 +360,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
