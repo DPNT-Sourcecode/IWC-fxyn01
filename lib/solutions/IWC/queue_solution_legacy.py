@@ -215,6 +215,18 @@ class Queue:
                         temp = curr_task_i
                         self._queue[i] = self._queue[j]
                         self._queue[j] = temp
+                        curr_i = i
+                        k = curr_i - 1
+                        # Shift item along the queue until only older timestamps are in front
+                        while self._calculate_difference_seconds(self._queue[k].timestamp, self._queue[curr_i].timestamp) > 0:
+                            temp = self._queue[k]
+                            self._queue[k] = self._queue[i]
+                            self._queue[i] = temp
+                            k -= 1
+                            curr_i -= 1
+
+
+
 
         # I tried using functools to compare pairs, but the comparison function did not behave
         # as expected alongside timestamps. I have left this for completeness.
@@ -388,4 +400,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
