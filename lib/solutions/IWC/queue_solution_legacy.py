@@ -189,7 +189,8 @@ class Queue:
             key=lambda i: (
                 self._priority_for_task(i),
                 self._earliest_group_timestamp_for_task(i),
-                self._deprioritise_bank_statements(i)
+                self._deprioritise_bank_statements(i),
+                self._timestamp_for_task(i)
             )
         )
 
@@ -217,7 +218,7 @@ class Queue:
 
         self._queue.sort(key=cmp_to_key(self._prioritise_older_bank_statements))
 
-        self._queue.sort(key=lambda i: self._timestamp_for_task(i))
+        # self._queue.sort(key=lambda i: self._timestamp_for_task(i))
 
 
         task = self._queue.pop(0)
@@ -268,7 +269,7 @@ class Queue:
 
 
     def _prioritise_older_bank_statements(self, x: TaskSubmission, y: TaskSubmission) -> int:
-        if y.provider != BANK_STATEMENTS_PROVIDER.name:
+        if x.provider != BANK_STATEMENTS_PROVIDER.name and y.provider != BANK_STATEMENTS_PROVIDER.name:
             return 1
 
         age: int = self._calculate_difference_seconds(datetime.fromisoformat(y.timestamp), datetime.fromisoformat(x.timestamp))
@@ -276,7 +277,8 @@ class Queue:
         # Check > 5 mins (300 seconds)
         if age >= 300:
             # Return lower value so it is prioritised earlier
-            return 0
+            if y.provider == BANK_STATEMENTS_PROVIDER.name:
+                return 0
         return 1
 
     @staticmethod
@@ -378,4 +380,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
