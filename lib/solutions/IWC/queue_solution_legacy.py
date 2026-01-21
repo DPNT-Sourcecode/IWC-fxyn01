@@ -198,7 +198,7 @@ class Queue:
             curr_task_i: TaskSubmission = self._queue[i]
             for j in range(len(self._queue)):
                 # Do not swap same item or previous items back
-                if i <= j:
+                if i >= j:
                     continue
                 curr_task_j: TaskSubmission = self._queue[j]
                 if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
@@ -356,6 +356,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
