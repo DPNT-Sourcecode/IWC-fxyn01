@@ -83,7 +83,8 @@ class Queue:
         raw_priority = metadata.get("priority", Priority.NORMAL)
 
         # To stop rule of three superseding old bank statements, check for bank statement and age here
-        # if task.provider == BANK_STATEMENTS_PROVIDER.name and
+        if task.provider == BANK_STATEMENTS_PROVIDER.name and
+            raw_priority = Priority.HIGH
 
         try:
             return Priority(raw_priority)
@@ -411,6 +412,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
