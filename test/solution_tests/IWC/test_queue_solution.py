@@ -205,7 +205,18 @@ def test_old_bank_statements_occur_before_other_events_multiple_events_together_
 
 def test_old_bank_statements_occur_after_earlier_timestamps() -> None:
     run_queue([
-        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=7)).expect(1),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=2)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=3)).expect(2),
+        call_enqueue("id_verification", 2, iso_ts(delta_minutes=7)).expect(3),
+
+        call_dequeue().expect("bank_statements", 1),
+        call_dequeue().expect("companies_house", 1),
+        call_dequeue().expect("id_verification", 2),
+    ])
+
+def test_old_bank_statements_occur_after_earlier_timestamps_copy() -> None:
+    run_queue([
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(1),
         call_enqueue("companies_house", 1, iso_ts(delta_minutes=3)).expect(2),
         call_enqueue("id_verification", 2, iso_ts(delta_minutes=2)).expect(3),
 
@@ -216,14 +227,14 @@ def test_old_bank_statements_occur_after_earlier_timestamps() -> None:
 
 def test_old_bank_statements_occur_before_new_event_but_after_one_with_less_than_required_age() -> None:
     run_queue([
-        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=7)).expect(1),
-        call_enqueue("companies_house", 1, iso_ts(delta_minutes=0)).expect(2),
+        call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(1),
+        call_enqueue("companies_house", 1, iso_ts(delta_minutes=7)).expect(2),
         call_enqueue("id_verification", 2, iso_ts(delta_minutes=2)).expect(3),
         call_enqueue("companies_house", 2, iso_ts(delta_minutes=4)).expect(4),
         call_dequeue().expect("bank_statements", 1),
-        call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("id_verification", 2),
         call_dequeue().expect("companies_house", 2),
+        call_dequeue().expect("companies_house", 1)
     ])
 
 def test_multiple_bank_statements_rule_of_three_prioritised_below_old_bank_statements() -> None:
@@ -237,5 +248,3 @@ def test_multiple_bank_statements_rule_of_three_prioritised_below_old_bank_state
         call_dequeue().expect("credit_check", 1),
         call_dequeue().expect("bank_statements", 1),
     ])
-
-
