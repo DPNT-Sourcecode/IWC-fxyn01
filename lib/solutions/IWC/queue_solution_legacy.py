@@ -270,7 +270,7 @@ class Queue:
 
     def _prioritise_older_bank_statements(self, x: TaskSubmission, y: TaskSubmission) -> int:
         if x.provider != BANK_STATEMENTS_PROVIDER.name and y.provider != BANK_STATEMENTS_PROVIDER.name:
-            return 1
+            return 0
 
         age: int = self._calculate_difference_seconds(datetime.fromisoformat(y.timestamp), datetime.fromisoformat(x.timestamp))
 
@@ -278,8 +278,15 @@ class Queue:
         if age >= 300:
             # Return lower value so it is prioritised earlier
             if y.provider == BANK_STATEMENTS_PROVIDER.name:
-                return 0
-        return 1
+                return -1
+
+        # age = self._calculate_difference_seconds(datetime.fromisoformat(x.timestamp),
+        #                                               datetime.fromisoformat(y.timestamp))
+        # if age >= 300:
+        #     # Return higher value so it is prioritised later
+        #     if x.provider == BANK_STATEMENTS_PROVIDER.name:
+        #         return 1
+        return 0
 
     @staticmethod
     def _calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
@@ -380,5 +387,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
