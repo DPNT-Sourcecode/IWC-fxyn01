@@ -215,6 +215,10 @@ class Queue:
                         self._queue[i] = self._queue[j]
                         self._queue[j] = temp
 
+        
+
+
+
         task = self._queue.pop(0)
 
         # Update queue to remove provider from item
@@ -360,6 +364,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
