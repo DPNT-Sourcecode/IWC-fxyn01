@@ -278,14 +278,14 @@ class Queue:
         if age >= 300:
             # Return lower value so it is prioritised earlier
             if y.provider == BANK_STATEMENTS_PROVIDER.name:
-                return -1
+                return 1
 
-        # age = self._calculate_difference_seconds(datetime.fromisoformat(x.timestamp),
-        #                                               datetime.fromisoformat(y.timestamp))
-        # if age >= 300:
-        #     # Return higher value so it is prioritised later
-        #     if x.provider == BANK_STATEMENTS_PROVIDER.name:
-        #         return 1
+        age = self._calculate_difference_seconds(datetime.fromisoformat(x.timestamp),
+                                                      datetime.fromisoformat(y.timestamp))
+        if age >= 300:
+            # Return higher value so it is prioritised later
+            if x.provider == BANK_STATEMENTS_PROVIDER.name:
+                return -1
         return 0
 
     @staticmethod
@@ -387,6 +387,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
