@@ -189,8 +189,7 @@ class Queue:
             key=lambda i: (
                 self._priority_for_task(i),
                 self._earliest_group_timestamp_for_task(i),
-                self._deprioritise_bank_statements(i),
-                self._timestamp_for_task(i)
+                self._deprioritise_bank_statements(i)
             )
         )
 
@@ -218,6 +217,7 @@ class Queue:
 
         self._queue.sort(key=cmp_to_key(self._prioritise_older_bank_statements))
 
+        self._queue.sort(key=lambda i: self._timestamp_for_task(i))
 
 
         task = self._queue.pop(0)
@@ -378,3 +378,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
