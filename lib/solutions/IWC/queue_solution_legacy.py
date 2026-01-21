@@ -206,7 +206,7 @@ class Queue:
                     and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
                     continue
 
-                age: int = self._calculate_difference_seconds(datetime.fromisoformat(curr_task_j.timestamp), datetime.fromisoformat(curr_task_i.timestamp))
+                age: int = self._calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp), datetime.fromisoformat(curr_task_j.timestamp))
 
                 # Check > 5 mins (300 seconds)
                 if age >= 300:
@@ -218,7 +218,7 @@ class Queue:
                         curr_i = i
                         k = curr_i - 1
                         # Shift item along the queue until only older timestamps are in front
-                        while self._calculate_difference_seconds(self._queue[k].timestamp, self._queue[curr_i].timestamp) > 0:
+                        while self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[curr_i].timestamp)) > 0:
                             temp = self._queue[k]
                             self._queue[k] = self._queue[i]
                             self._queue[i] = temp
@@ -400,5 +400,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
