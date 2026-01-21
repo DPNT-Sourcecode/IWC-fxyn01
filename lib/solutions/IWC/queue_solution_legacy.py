@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
-from functools import cmp_to_key
 
 # LEGACY CODE ASSET
 # RESOLVED on deploy
 from solutions.IWC.task_types import TaskSubmission, TaskDispatch
+
 
 class Priority(IntEnum):
     """Represents the queue ordering tiers observed in the legacy system."""
@@ -83,10 +83,6 @@ class Queue:
         metadata = task.metadata
         raw_priority = metadata.get("priority", Priority.NORMAL)
 
-        # To stop rule of three superseding old bank statements, check for bank statement and age here
-        if task.provider == BANK_STATEMENTS_PROVIDER.name and
-            raw_priority = Priority.HIGH
-
         try:
             return Priority(raw_priority)
         except (TypeError, ValueError):
@@ -108,8 +104,11 @@ class Queue:
 
     # Give a higher number so other values are sorted earlier
     @staticmethod
-    def _deprioritise_bank_statements(task: TaskSubmission):
+    def _deprioritise_bank_statements(task: TaskSubmission, age: int):
         if task.provider == BANK_STATEMENTS_PROVIDER.name:
+            # Do not shift the bank statement right if it is sufficiently old
+            if age >= 300:
+                return 0
             return 1
         return 0
 
@@ -191,6 +190,9 @@ class Queue:
                 metadata["group_earliest_timestamp"] = current_earliest
                 metadata["priority"] = priority_level
 
+
+        ages_for_bank_statements = {}
+
         # Brute force pairwise comparison
         for i in range(len(self._queue)):
             for j in range(len(self._queue)):
@@ -218,6 +220,10 @@ class Queue:
                         self._queue[i].metadata["priority"] = Priority.HIGH
                         self._queue[i].metadata["group_earliest_timestamp"] = MIN_TIMESTAMP
                         self._queue[j] = temp
+
+                        # Track the age
+                        ages_for_bank_statements[self._queue[i].user_id] = max(age, ages_for_bank_statements.get(self._queue[i].user_id, 0))
+
                         k = i - 1
                         should_shift = False
                         # Work out where the bank statement item should move to. If timestamps are equal, prefer the bank statement task
@@ -237,12 +243,11 @@ class Queue:
                             item_to_move = self._queue.pop(i)
                             self._queue.insert(k + 1, item_to_move)
 
-
         self._queue.sort(
             key=lambda i: (
                 self._priority_for_task(i),
                 self._earliest_group_timestamp_for_task(i),
-                self._deprioritise_bank_statements(i),
+                self._deprioritise_bank_statements(i, ages_for_bank_statements.get(i.user_id, 0)),
                 self._timestamp_for_task(i)
             )
         )
@@ -422,4 +427,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
