@@ -215,15 +215,12 @@ class Queue:
                         temp = curr_task_i
                         self._queue[i] = self._queue[j]
                         self._queue[j] = temp
-                        curr_i = i
-                        k = curr_i - 1
-                        # Shift item along the queue until only older timestamps are in front
-                        while self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[curr_i].timestamp)) > 0:
-                            temp = self._queue[k]
-                            self._queue[k] = self._queue[i]
-                            self._queue[i] = temp
+                        k = i - 1
+                        # Work out where the bank difference item should move to
+                        while self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp)) > 0:
                             k -= 1
-                            curr_i -= 1
+                        item_to_move = self._queue.pop(i)
+                        self._queue.insert(k, item_to_move)
 
 
 
@@ -400,6 +397,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
