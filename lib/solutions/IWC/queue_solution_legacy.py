@@ -193,6 +193,27 @@ class Queue:
             )
         )
 
+        # Brute force pairwise comparison, then will test adding sorting criteria
+        for i in range(len(self._queue)):
+            curr_task_i: TaskSubmission = self._queue[i]
+            for j in range(len(self._queue)):
+                # Do not swap same item or previous items back
+                if i <= j:
+                    continue
+                curr_task_j: TaskSubmission = self._queue[j]
+                if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
+                    and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
+                    continue
+
+                age: int = self.__calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp), datetime.fromisoformat(curr_task_j.timestamp))
+
+                if age > 5:
+                    if curr_task_j.provider == BANK_STATEMENTS_PROVIDER.name:
+                        # Swap i and j where j should be moved forward
+                        temp = curr_task_i
+                        self._queue[i] = self._queue[j]
+                        self._queue[j] = temp
+
         task = self._queue.pop(0)
 
         # Update queue to remove provider from item
@@ -334,3 +355,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
