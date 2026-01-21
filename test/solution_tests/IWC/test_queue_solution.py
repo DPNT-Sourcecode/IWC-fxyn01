@@ -255,13 +255,13 @@ def test_bank_statement_shifts_only_above_non_bank_statements_with_same_timestam
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(2),
         call_enqueue("bank_statements", 2, iso_ts(delta_minutes=0)).expect(3),
         call_enqueue("credit_check", 1, iso_ts(delta_minutes=6)).expect(4),
-        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("bank_statements", 2),
+        call_dequeue().expect("bank_statements", 1),
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("credit_check", 1),
     ])
 
-def test_bank_statement_shifts_only_above_non_bank_statements_with_same_timestamp_zero_index() -> None:
+def test_bank_statement_shifts_above_all_statements_with_same_timestamp_zero_index() -> None:
     run_queue([
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(1),
         call_enqueue("bank_statements", 2, iso_ts(delta_minutes=0)).expect(2),
@@ -288,3 +288,4 @@ def test_bank_statement_multiple_rules_of_three() -> None:
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("id_verification", 1),
     ])
+
