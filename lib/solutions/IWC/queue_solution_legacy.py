@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
+from functools import cmp_to_key
 
 # LEGACY CODE ASSET
 # RESOLVED on deploy
@@ -215,7 +216,7 @@ class Queue:
         #                 self._queue[i] = self._queue[j]
         #                 self._queue[j] = temp
 
-        self._queue.sort(key=)
+        self._queue.sort(key=cmp_to_key(self._prioritise_older_bank_statements))
 
 
 
@@ -252,7 +253,7 @@ class Queue:
             return 0
 
         if self.size == 2:
-            return self.__calculate_difference_seconds_abs(datetime.fromisoformat(self._queue[0].timestamp), datetime.fromisoformat(self._queue[1].timestamp))
+            return self._calculate_difference_seconds_abs(datetime.fromisoformat(self._queue[0].timestamp), datetime.fromisoformat(self._queue[1].timestamp))
 
         newest_timestamp = datetime.fromisoformat(self._queue[0].timestamp)
         oldest_timestamp = newest_timestamp
@@ -263,14 +264,27 @@ class Queue:
             elif curr_timestamp > oldest_timestamp:
                 oldest_timestamp = curr_timestamp
 
-        return self.__calculate_difference_seconds_abs(newest_timestamp, oldest_timestamp)
+        return self._calculate_difference_seconds_abs(newest_timestamp, oldest_timestamp)
+
+
+    def _prioritise_older_bank_statements(self, x: TaskSubmission, y: TaskSubmission) -> int:
+        if y.provider != BANK_STATEMENTS_PROVIDER.name:
+            return 1
+
+        age: int = self._calculate_difference_seconds(datetime.fromisoformat(y.timestamp), datetime.fromisoformat(x.timestamp))
+
+        # Check > 5 mins (300 seconds)
+        if age >= 300:
+            # Return lower value so it is prioritised earlier
+            return 0
+        return 1
 
     @staticmethod
-    def __calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
+    def _calculate_difference_seconds(first_timestamp, second_timestamp) -> int:
         return int((first_timestamp - second_timestamp).total_seconds())
 
     @staticmethod
-    def __calculate_difference_seconds_abs(first_timestamp, second_timestamp) -> int:
+    def _calculate_difference_seconds_abs(first_timestamp, second_timestamp) -> int:
         return int((abs(first_timestamp - second_timestamp)).total_seconds())
 
     def purge(self):
@@ -364,11 +378,3 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
-
-
-
-
-
-
-
-
