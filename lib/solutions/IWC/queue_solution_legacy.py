@@ -19,6 +19,7 @@ class Provider:
     depends_on: list[str]
 
 MAX_TIMESTAMP = datetime.max.replace(tzinfo=None)
+MIN_TIMESTAMP = datetime.min.replace(tzinfo=None)
 
 COMPANIES_HOUSE_PROVIDER = Provider(
     name="companies_house", base_url="https://fake.companieshouse.co.uk", depends_on=[]
@@ -190,15 +191,6 @@ class Queue:
                 metadata["group_earliest_timestamp"] = current_earliest
                 metadata["priority"] = priority_level
 
-        self._queue.sort(
-            key=lambda i: (
-                self._priority_for_task(i),
-                self._earliest_group_timestamp_for_task(i),
-                self._deprioritise_bank_statements(i),
-                self._timestamp_for_task(i)
-            )
-        )
-
         # Brute force pairwise comparison
         for i in range(len(self._queue)):
             for j in range(len(self._queue)):
@@ -210,10 +202,11 @@ class Queue:
                 curr_task_i: TaskSubmission = self._queue[i]
                 curr_task_j: TaskSubmission = self._queue[j]
                 if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
-                    and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
+                        and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
                     continue
 
-                age: int = self._calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp), datetime.fromisoformat(curr_task_j.timestamp))
+                age: int = self._calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp),
+                                                              datetime.fromisoformat(curr_task_j.timestamp))
 
                 # Check > 5 mins (300 seconds)
                 if age >= 300:
@@ -221,21 +214,40 @@ class Queue:
                         # Swap i and j where j should be moved forward
                         temp = curr_task_i
                         self._queue[i] = self._queue[j]
+                        # Update priority and earliest timestamp so they can't be superseded
+                        self._queue[i].metadata["priority"] = Priority.HIGH
+                        self._queue[i].metadata["group_earliest_timestamp"] = MIN_TIMESTAMP
                         self._queue[j] = temp
                         k = i - 1
                         should_shift = False
                         # Work out where the bank statement item should move to. If timestamps are equal, prefer the bank statement task
-                        difference = self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp))
+                        difference = self._calculate_difference_seconds(
+                            datetime.fromisoformat(self._queue[k].timestamp),
+                            datetime.fromisoformat(self._queue[i].timestamp))
                         while k >= 0 and difference >= 0:
                             # Only shift if difference is strictly greater, or other item is not a bank statement task
-                            should_shift = difference > 0 or self._queue[k].provider != BANK_STATEMENTS_PROVIDER.name
+                            should_shift = difference > 0 or self._queue[
+                                k].provider != BANK_STATEMENTS_PROVIDER.name
                             k -= 1
-                            difference = self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp),
-                                                               datetime.fromisoformat(self._queue[i].timestamp))
+                            difference = self._calculate_difference_seconds(
+                                datetime.fromisoformat(self._queue[k].timestamp),
+                                datetime.fromisoformat(self._queue[i].timestamp))
 
                         if should_shift:
                             item_to_move = self._queue.pop(i)
-                            self._queue.insert(k+1, item_to_move)
+                            self._queue.insert(k + 1, item_to_move)
+
+
+        self._queue.sort(
+            key=lambda i: (
+                self._priority_for_task(i),
+                self._earliest_group_timestamp_for_task(i),
+                self._deprioritise_bank_statements(i),
+                self._timestamp_for_task(i)
+            )
+        )
+
+
 
 
 
@@ -243,8 +255,6 @@ class Queue:
         # I tried using functools to compare pairs, but the comparison function did not behave
         # as expected alongside timestamps. I have left this for completeness.
         # self._queue.sort(key=cmp_to_key(self._prioritise_older_bank_statements))
-
-        # self._queue.sort(key=lambda i: self._timestamp_for_task(i))
 
         task = self._queue.pop(0)
 
@@ -412,3 +422,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
