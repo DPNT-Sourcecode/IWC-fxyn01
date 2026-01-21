@@ -217,11 +217,11 @@ class Queue:
                         self._queue[j] = temp
                         k = i - 1
                         should_shift = False
-                        # Work out where the bank difference item should move to
-                        while k > 0 and self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp)) > 0:
+                        # Work out where the bank statement item should move to. If timestamps are equal, prefer the bank statement task
+                        while k > 0 and self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp)) >= 0:
                             k -= 1
                             should_shift = True
-                        if k == 0 and self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp)) > 0:
+                        if k == 0 and self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp)) >= 0:
                             should_shift = True
                         if should_shift:
                             item_to_move = self._queue.pop(i)
@@ -402,4 +402,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
