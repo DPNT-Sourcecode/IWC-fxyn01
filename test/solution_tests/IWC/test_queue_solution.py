@@ -288,4 +288,3 @@ def test_bank_statement_multiple_rules_of_three() -> None:
         call_dequeue().expect("companies_house", 1),
         call_dequeue().expect("id_verification", 1),
     ])
-
