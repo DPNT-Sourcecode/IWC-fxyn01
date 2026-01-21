@@ -192,8 +192,43 @@ class Queue:
 
 
         ages_for_bank_statements = {}
+        # Brute force pairwise comparison to set up info to stop the other checks interfering
+        for i in range(len(self._queue)):
+            curr_task_i: TaskSubmission = self._queue[i]
+            for j in range(len(self._queue)):
+                # Do not swap same item or previous items back
+                if i >= j:
+                    continue
 
-        # Brute force pairwise comparison
+                curr_task_j: TaskSubmission = self._queue[j]
+                if (curr_task_i.provider != BANK_STATEMENTS_PROVIDER.name
+                        and curr_task_j.provider != BANK_STATEMENTS_PROVIDER.name):
+                    continue
+
+                age: int = self._calculate_difference_seconds(datetime.fromisoformat(curr_task_i.timestamp),
+                                                              datetime.fromisoformat(curr_task_j.timestamp))
+
+                # Check > 5 mins (300 seconds) - we only need to know a shift will happen at this stage
+                if age >= 300:
+                    if curr_task_j.provider == BANK_STATEMENTS_PROVIDER.name:
+                        # Update priority and earliest timestamp so they can't be superseded
+                        self._queue[j].metadata["priority"] = Priority.HIGH
+                        # self._queue[j].metadata["group_earliest_timestamp"] = MIN_TIMESTAMP
+
+                        # Track the age
+                        ages_for_bank_statements[self._queue[i].user_id] = max(age, ages_for_bank_statements.get(
+                            self._queue[i].user_id, 0))
+
+        self._queue.sort(
+            key=lambda i: (
+                self._priority_for_task(i),
+                self._earliest_group_timestamp_for_task(i),
+                self._deprioritise_bank_statements(i, ages_for_bank_statements.get(i.user_id, 0)),
+                self._timestamp_for_task(i)
+            )
+        )
+
+        # Brute force pairwise comparison to make the shifts
         for i in range(len(self._queue)):
             for j in range(len(self._queue)):
                 # Do not swap same item or previous items back
@@ -222,7 +257,8 @@ class Queue:
                         self._queue[j] = temp
 
                         # Track the age
-                        ages_for_bank_statements[self._queue[i].user_id] = max(age, ages_for_bank_statements.get(self._queue[i].user_id, 0))
+                        ages_for_bank_statements[self._queue[i].user_id] = max(age, ages_for_bank_statements.get(
+                            self._queue[i].user_id, 0))
 
                         k = i - 1
                         should_shift = False
@@ -242,17 +278,6 @@ class Queue:
                         if should_shift:
                             item_to_move = self._queue.pop(i)
                             self._queue.insert(k + 1, item_to_move)
-
-        self._queue.sort(
-            key=lambda i: (
-                self._priority_for_task(i),
-                self._earliest_group_timestamp_for_task(i),
-                self._deprioritise_bank_statements(i, ages_for_bank_statements.get(i.user_id, 0)),
-                self._timestamp_for_task(i)
-            )
-        )
-
-
 
 
 
@@ -427,5 +452,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
