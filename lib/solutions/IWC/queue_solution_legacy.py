@@ -222,7 +222,8 @@ class Queue:
                         # Work out where the bank statement item should move to. If timestamps are equal, prefer the bank statement task
                         difference = self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp), datetime.fromisoformat(self._queue[i].timestamp))
                         while k >= 0 and difference >= 0:
-                            should_shift = True
+                            # Only shift if difference is strictly greater, or other item is not a bank statement task
+                            should_shift = difference > 0 or self._queue[k].provider != BANK_STATEMENTS_PROVIDER.name
                             k -= 1
                             difference = self._calculate_difference_seconds(datetime.fromisoformat(self._queue[k].timestamp),
                                                                datetime.fromisoformat(self._queue[i].timestamp))
